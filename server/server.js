@@ -1,7 +1,13 @@
 const express = require("express");
+const connectDB = require("./config/dbConfig");
+const dotenv = require("dotenv");
 const app = express();
+dotenv.config();
 
-const PORT = 5000;
+const PORT = process.env.PORT || 8000;
+const DATABASE_URL = process.env.DATABASE_URL;
+
+connectDB(DATABASE_URL);
 app.get("/", (req, res) => {
   res.send("Hello, World!");
 });
