@@ -6,6 +6,6 @@ router.post("/add-user", UserControllers.addUser);
 router.get("/get-all-users", UserControllers.getAllUsers);
 router.get("/get-user-by-id/:id", UserControllers.getUserById);
 router.patch("/update-user-by-id/:id", UserControllers.updateUserById);
-router.patch("/delete-user-by-id/:id", UserControllers.deleteUserById);
+router.delete("/delete-user-by-id/:id", UserControllers.deleteUserById);
 
 module.exports = router;

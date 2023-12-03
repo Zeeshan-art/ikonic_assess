@@ -10,6 +10,10 @@ const addUser = async (req, res) => {
       return res
         .status(400)
         .json({ error: "User already exists with this email" });
+    }
+    const adminUser = await User.findOne({ role: "admin" });
+    if (role === "admin" && adminUser) {
+      return res.status(400).json({ error: "Admin User already exists" });
     } else {
       const data = await User.create({
         username,
@@ -21,7 +25,10 @@ const addUser = async (req, res) => {
         .json({ data, message: "User registered successfully" });
     }
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: error.errors.email.message,
+    });
   }
 };
 
