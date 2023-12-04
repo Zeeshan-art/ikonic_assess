@@ -1,14 +1,17 @@
 const Post = require("../models/postModel");
 
 const addPost = async (req, res) => {
+  const { _id } = req.user;
   const { title, content } = req.body;
   try {
     const data = await Post.create({
-      title,
+      title, 
       content,
+      userId: _id,
     });
     return res.status(201).json({ data, message: "Post Created Successfully" });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -27,6 +30,7 @@ const getAllPosts = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const getPostById = async (req, res) => {
   const postId = req.params.id;
   try {

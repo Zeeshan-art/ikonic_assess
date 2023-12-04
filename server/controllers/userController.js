@@ -1,37 +1,70 @@
 const User = require("../models/userModel");
+const bcrypt = require("bcrypt");
+const roles = require("../utils/roles");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
 
-const addUser = async (req, res) => {
-  const { username, email, role } = req.body;
+const registerUser = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const existingUser = await User.findOne({
-      email,
-    });
-    if (existingUser) {
+    const user = await User.findOne({ email });
+    if (user) {
       return res
         .status(400)
         .json({ error: "User already exists with this email" });
-    }
-    const adminUser = await User.findOne({ role: "admin" });
-    if (role === "admin" && adminUser) {
-      return res.status(400).json({ error: "Admin User already exists" });
     } else {
-      const data = await User.create({
-        username,
-        email,
-        role,
-      });
-      return res
-        .status(201)
-        .json({ data, message: "User registered successfully" });
+      const salt = await bcrypt.genSalt(10);
+      const hashPassword = await bcrypt.hash(password, salt);
+      if (email === process.env.ADMIN_EMAIL) {
+        const data = await User.create({
+          email,
+          password: hashPassword,
+          role: roles.Admin,
+        });
+        return res
+          .status(201)
+          .json({ data, message: "User registered successfully" });
+      } else {
+        const data = await User.create({
+          email,
+          password: hashPassword,
+        });
+        return res
+          .status(201)
+          .json({ data, message: "User registered successfully" });
+      }
     }
   } catch (error) {
     return res.status(500).json({
-      message: "Internal Server Error",
-      error: error.errors.email.message,
+      error: "Internal Server Error",
+      message: error.message,
     });
   }
 };
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
 
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "Email does'nt Exist" });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      const token = jwt.sign({ user: user }, process.env.JWT_SECRET, {
+        expiresIn: "5d",
+      });
+      console.log(token);
+      user.password = password;
+      const data = { token: token, user: user };
+      return res.status(200).json({ data, message: "Login Successfully" });
+    } else {
+      return res.status(401).json({ error: "Invalid Password" });
+    }
+  } catch (error) {
+    return res.status(404).json({ error: "Email does'nt Exist" });
+  }
+};
 const getAllUsers = async (req, res) => {
   try {
     const data = await User.find();
@@ -63,10 +96,10 @@ const getUserById = async (req, res) => {
 };
 const updateUserById = async (req, res) => {
   const userId = req.params.id;
-  const { username, email, role } = req.body;
+  const { email, password, role } = req.body;
   try {
     const data = await User.findByIdAndUpdate(userId, {
-      $set: { username, email, role },
+      $set: { email, password, role },
     });
     if (!data) {
       return res.status(404).json({ error: "User not found" });
@@ -91,7 +124,8 @@ const deleteUserById = async (req, res) => {
 };
 
 module.exports = {
-  addUser,
+  registerUser,
+  loginUser,
   getAllUsers,
   getUserById,
   updateUserById,
