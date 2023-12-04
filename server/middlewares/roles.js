@@ -1,4 +1,3 @@
-const roles = require("../utils/roles");
 function authorizeRoles(requiredRole) {
   return (req, res, next) => {
     const user = req.user;
