@@ -7,6 +7,7 @@ const dotenv = require("dotenv");
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
   try {
+    console.log("password @ email", email, password);
     const user = await User.findOne({ email });
     if (user) {
       return res
@@ -35,6 +36,7 @@ const registerUser = async (req, res) => {
       }
     }
   } catch (error) {
+    console.log("serverError", error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: error.message,
