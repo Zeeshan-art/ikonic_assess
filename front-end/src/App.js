@@ -1,11 +1,18 @@
-import logo from './logo.svg';
-import './App.css';
+import Login from "./components/forms/login";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Signup from "./components/forms/signup";
 
 function App() {
   return (
-    <div className="App">
-      
-    </div>
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />}></Route>
+          <Route path="/signup" element={<Signup />}></Route>
+          <Route path="/forgot-password" element={<Login />}></Route>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
