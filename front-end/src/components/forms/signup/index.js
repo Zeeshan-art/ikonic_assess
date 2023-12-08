@@ -1,20 +1,20 @@
-import React, { useState,useEffect } from "react";
+import React, { useState } from "react";
 import "../login/style.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { signup } from "../../../redux/slice/user/thunk";
+
 const Signup = () => {
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(false);
   const [data, setData] = useState({ email: "", password: "" });
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleSumbit = (e) => {
     e.preventDefault();
+    dispatch(signup(data));
+
     navigate("/login");
-    console.log(data);
   };
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  }, []);
   return (
     <>
       {isLoading ? (
@@ -26,14 +26,6 @@ const Signup = () => {
           <div className="form_container p-5 rounded bg-white border">
             <form onSubmit={handleSumbit}>
               <h3 className="text-center">Sign Up</h3>
-              {/* <div class="mb-2">
-              <label htmlFor="name">Username</label>
-              <input
-                type="name"
-                className="form-control"
-                placeholder="Enter Username"
-              />
-            </div> */}
               <div class="mb-2">
                 <label htmlFor="email">Email</label>
                 <input
