@@ -1,10 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const signup = createAsyncThunk("user/register-user", async (body) => {
+export const signup = createAsyncThunk("user/register", async (body) => {
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/user/register-user",
+      "http://localhost:5000/api/user/register",
       body,
       {
         headers: {
@@ -12,10 +12,8 @@ export const signup = createAsyncThunk("user/register-user", async (body) => {
         },
       }
     );
-    console.log("signup:", response.data);
     return response.data;
   } catch (error) {
-    console.log("sigerror", error.message);
-    return error;
+    return error.response;
   }
 });
