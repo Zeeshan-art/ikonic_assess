@@ -1,13 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const UserControllers = require("../controllers/userController");
-const userAuthorize = require("../utils/validators/userValidator");
+const UserValidators = require("../utils/validators/userValidator");
 
-router.post("/register", UserControllers.registerUser);
-router.post("/login", UserControllers.loginUser);
+router.post(
+  "/register",
+  UserValidators.validations,
+  UserControllers.registerUser
+);
+router.post("/login", UserValidators.validations, UserControllers.loginUser);
 router.get("/get-all", UserControllers.getAllUsers);
 router.get("/get-by-id/:id", UserControllers.getUserById);
-router.patch("/update-by-id/:id", UserControllers.updateUserById);
+router.patch(
+  "/update-by-id/:id",
+  UserValidators.validations,
+  UserControllers.updateUserById
+);
 router.delete("/delete-by-id/:id", UserControllers.deleteUserById);
 router.delete("/delete-all", UserControllers.deleteallUser);
 
