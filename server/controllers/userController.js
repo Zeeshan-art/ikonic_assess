@@ -1,17 +1,26 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
-const roles = require("../utils/roles");
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
+const {
+  ROLES,
+  API_STATUS_CODES,
+  RESPONSE_MESSAGES,
+} = require("../constants/constants");
+const {
+  CONTROLLER_ERROR,
+  INVALID_REQUEST,
+  AUTHORIZATION_FAILED,
+} = require("../constants/error");
 
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
     if (user) {
-      return res
-        .status(400)
-        .json({ message: "User already exists with this email" });
+      return res.json({
+        status: API_STATUS_CODES.DUPLICATE_ENTRY,
+        message: RESPONSE_MESSAGES.DUPLICATE_ENTRY,
+      });
     } else {
       const salt = await bcrypt.genSalt(10);
       const hashPassword = await bcrypt.hash(password, salt);
@@ -19,25 +28,27 @@ const registerUser = async (req, res) => {
         const data = await User.create({
           email,
           password: hashPassword,
-          role: roles.Admin,
+          role: ROLES.ADMIN,
         });
-        return res.status(201).json({ data, message: "success" });
+        return res.json({
+          data,
+          status: API_STATUS_CODES.SUCCESS,
+          message: RESPONSE_MESSAGES.SUCCESS,
+        });
       } else {
         const data = await User.create({
           email,
           password: hashPassword,
         });
-        return res
-          .status(201)
-          .json({ data, message: "User registered successfully" });
+        return res.json({
+          data,
+          status: API_STATUS_CODES.SUCCESS,
+          message: RESPONSE_MESSAGES.SUCCESS,
+        });
       }
     }
   } catch (error) {
-    console.log("serverError", error);
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: error.message,
-    });
+    return res.json(CONTROLLER_ERROR);
   }
 };
 const loginUser = async (req, res) => {
@@ -46,7 +57,10 @@ const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ error: "Email does'nt Exist" });
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (isPasswordValid) {
@@ -56,26 +70,35 @@ const loginUser = async (req, res) => {
       console.log(token);
       user.password = password;
       const data = { token: token, user: user };
-      return res.status(200).json({ data, message: "Login Successfully" });
+      return res.json({
+        data,
+        status: API_STATUS_CODES.SUCCESS,
+        message: RESPONSE_MESSAGES.SUCCESS,
+      });
     } else {
-      return res.status(401).json({ error: "Invalid Password" });
+      return res.json({ AUTHORIZATION_FAILED });
     }
   } catch (error) {
-    return res.status(404).json({ error: "Email does'nt Exist" });
+    return res.json(CONTROLLER_ERROR);
   }
 };
 const getAllUsers = async (req, res) => {
   try {
-    const data = await User.find();
-    if (!data) {
-      return res.status(404).json({ error: "User not found" });
+    const data = await User.find({});
+    if (data.length === 0) {
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
     } else {
-      return res
-        .status(200)
-        .json({ data, message: "User data accessed successfully" });
+      return res.json({
+        data,
+        status: API_STATUS_CODES.SUCCESS,
+        message: RESPONSE_MESSAGES.SUCCESS,
+      });
     }
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.json(CONTROLLER_ERROR);
   }
 };
 const getUserById = async (req, res) => {
@@ -83,14 +106,19 @@ const getUserById = async (req, res) => {
   try {
     const data = await User.findById(userId);
     if (!data) {
-      return res.status(404).json({ error: "User not found" });
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
     } else {
-      return res
-        .status(200)
-        .json({ data, message: "User data accessed successfully" });
+      return res.json({
+        data,
+        status: API_STATUS_CODES.SUCCESS,
+        message: RESPONSE_MESSAGES.SUCCESS,
+      });
     }
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.json(CONTROLLER_ERROR);
   }
 };
 const updateUserById = async (req, res) => {
@@ -101,11 +129,18 @@ const updateUserById = async (req, res) => {
       $set: { email, password, role },
     });
     if (!data) {
-      return res.status(404).json({ error: "User not found" });
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
     }
-    return res.status(200).json({ message: "User Updated Successfully" });
+    return res.json({
+      data,
+      status: API_STATUS_CODES.SUCCESS,
+      message: RESPONSE_MESSAGES.SUCCESS,
+    });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.json(CONTROLLER_ERROR);
   }
 };
 
@@ -114,11 +149,34 @@ const deleteUserById = async (req, res) => {
   try {
     const data = await User.findByIdAndDelete(userId);
     if (!data) {
-      return res.status(404).json({ error: "User not found" });
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
     }
-    return res.status(200).json({ message: "User Deleted Successfully" });
+    return res.json({
+      status: API_STATUS_CODES.SUCCESS,
+      message: RESPONSE_MESSAGES.SUCCESS,
+    });
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.json(CONTROLLER_ERROR);
+  }
+};
+const deleteallUser = async (req, res) => {
+  try {
+    const data = await User.deleteMany({});
+    if (data.deletedCount === 0) {
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
+    }
+    return res.json({
+      status: API_STATUS_CODES.SUCCESS,
+      message: RESPONSE_MESSAGES.SUCCESS,
+    });
+  } catch (error) {
+    return res.json(CONTROLLER_ERROR);
   }
 };
 
@@ -129,4 +187,5 @@ module.exports = {
   getUserById,
   updateUserById,
   deleteUserById,
+  deleteallUser,
 };

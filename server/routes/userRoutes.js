@@ -9,5 +9,6 @@ router.get("/get-all", UserControllers.getAllUsers);
 router.get("/get-by-id/:id", UserControllers.getUserById);
 router.patch("/update-by-id/:id", UserControllers.updateUserById);
 router.delete("/delete-by-id/:id", UserControllers.deleteUserById);
+router.delete("/delete-all", UserControllers.deleteallUser);
 
 module.exports = router;
