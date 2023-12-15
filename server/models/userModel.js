@@ -9,9 +9,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  posts: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
+    },
+  ],
   role: {
     type: String,
-    enum: ["admin", "user"],
     default: "user",
   },
   createdAt: { type: Date, default: Date.now },

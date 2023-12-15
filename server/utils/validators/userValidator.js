@@ -1,11 +1,15 @@
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
+const {
+  CONTROLLER_ERROR,
+  AUTHORIZATION_FAILED,
+} = require("../../constants/error");
 
 const userAuth = (req, res, next) => {
-  const token = req.headers.authorize;
+  const token = req.headers.authorization;
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized User" });
+    return res.json({ AUTHORIZATION_FAILED });
   }
   const bearer = token.split(" ")[1];
   try {
@@ -13,9 +17,7 @@ const userAuth = (req, res, next) => {
     req.user = verify.user;
     next();
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error });
+    return res.json({ CONTROLLER_ERROR });
   }
 };
 const validations = [

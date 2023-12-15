@@ -13,12 +13,14 @@ router.post(
 );
 router.get("/get-all", userAuth, PostControllers.getAllPosts);
 router.get("/get-by-id/:id", PostControllers.getPostById);
+router.get("/get-by-user-id/:id", PostControllers.getAllPostsByUserId);
 router.patch(
   "/update-by-id/:id",
   userAuth,
   authorizeRoles(ROLES.USER),
   PostControllers.updatePostById
 );
-router.delete("/delete-by-id/:id", PostControllers.deletePostById);
+router.delete("/delete-by-id/:id", userAuth,PostControllers.deletePostById);
+router.delete("/delete-all", PostControllers.deleteallPosts);
 
 module.exports = router;
