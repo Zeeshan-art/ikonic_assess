@@ -5,8 +5,10 @@ const {
   API_STATUS_CODES,
   RESPONSE_MESSAGES,
 } = require("../constants/constants");
-const { CONTROLLER_ERROR } = require("../constants/error");
-const { findById } = require("../models/userModel");
+const {
+  CONTROLLER_ERROR,
+  AUTHORIZATION_FAILED,
+} = require("../constants/error");
 
 // const addPost = async (req, res) => {
 //   const { _id } = req.user;
@@ -28,25 +30,59 @@ const { findById } = require("../models/userModel");
 // };
 const addPost = async (req, res) => {
   const { _id } = req.user;
-  const { title, content } = req.body;
+  console.log(_id);
+  const { caption } = req.body;
   try {
-    const data = await Post.create({
-      title,
-      content,
-      user_id: _id,
+    const post = await Post.create({
+      caption,
+      postOwner: _id,
     });
+
     const user = await User.findById({ _id });
-    console.log("id", data._id);
-    user.posts.push(data._id);
+    console.log("post_id", user);
+    user.posts.push(post._id);
     await user.save();
 
     return res.json({
-      data,
+      post,
       status: API_STATUS_CODES.SUCCESS,
       message: RESPONSE_MESSAGES.SUCCESS,
     });
   } catch (error) {
     console.log("error", error);
+    return res.json({ CONTROLLER_ERROR });
+  }
+};
+
+const postLikeandUnlikes = async (req, res) => {
+  const userId = req.user._id;
+  const postId = req.params.id;
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
+    }
+    if (post.likes.includes(userId)) {
+      const index = post.likes.indexOf(userId);
+      post.likes.splice(index, 1);
+      await post.save();
+      res.json({
+        sucess: 200,
+        message: "post unlike",
+      });
+    } else {
+      post.likes.push(userId);
+      await post.save();
+      res.json({
+        sucess: 200,
+        message: "post like",
+      });
+    }
+  } catch (error) {
+    console.log(error);
     return res.json({ CONTROLLER_ERROR });
   }
 };
@@ -133,20 +169,36 @@ const updatePostById = async (req, res) => {
 };
 
 const deletePostById = async (req, res) => {
+  const userId = req.user._id;
   const postId = req.params.id;
   try {
-    const data = await Post.findByIdAndDelete(postId);
-    if (!data) {
+    const post = await Post.findById(postId);
+    if (!post) {
       return res.json({
         status: API_STATUS_CODES.NOT_FOUND,
         message: RESPONSE_MESSAGES.NOT_FOUND,
       });
     }
+    if (post.postOwner.toString() !== userId.toString()) {
+      return res.json({
+        AUTHORIZATION_FAILED,
+      });
+    }
+
+    await post.deleteOne({postId});
+    console.log(postId);
+    const user = await User.findById(userId);
+
+    const index = user.posts.indexOf(postId);
+    user.posts.splice(index, 1);
+    await user.save();
+
     return res.json({
       status: API_STATUS_CODES.SUCCESS,
       message: RESPONSE_MESSAGES.SUCCESS,
     });
   } catch (error) {
+    console.log("error", error);
     return res.json({ CONTROLLER_ERROR });
   }
 };
@@ -176,4 +228,5 @@ module.exports = {
   updatePostById,
   deletePostById,
   deleteallPosts,
+  postLikeandUnlikes,
 };

@@ -81,6 +81,44 @@ const loginUser = async (req, res) => {
     return res.json(CONTROLLER_ERROR);
   }
 };
+const userFollowerandfollwoing = async (req, res) => {
+  const userId = req.user._id;
+  const followingId = req.params.id;
+  try {
+    const usertoFollow = await User.findById(followingId);
+    const loggedUser = await User.findById(userId);
+    if (!usertoFollow) {
+      return res.json({
+        status: API_STATUS_CODES.NOT_FOUND,
+        message: RESPONSE_MESSAGES.NOT_FOUND,
+      });
+    }
+
+    if (loggedUser.following.includes(usertoFollow._id)) {
+      const followerIndex = usertoFollow.followers.indexOf(userId);
+      const followingIndex = loggedUser.following.indexOf(usertoFollow._id);
+      loggedUser.following.splice(followingIndex, 1);
+      usertoFollow.followers.splice(followerIndex, 1);
+      await loggedUser.save();
+      await usertoFollow.save();
+
+      await usertoFollow.save();
+      return res.json({
+        status: 200,
+        message: "Unfollow",
+      });
+    } else {
+      loggedUser.following.push(usertoFollow._id);
+      usertoFollow.followers.push(userId);
+      await loggedUser.save();
+      await usertoFollow.save();
+      return res.json({
+        status: 200,
+        message: "Follow",
+      });
+    }
+  } catch (error) {}
+};
 const getAllUsers = async (req, res) => {
   try {
     const data = await User.find({});
@@ -182,6 +220,7 @@ const deleteallUser = async (req, res) => {
 module.exports = {
   registerUser,
   loginUser,
+  userFollowerandfollwoing,
   getAllUsers,
   getUserById,
   updateUserById,

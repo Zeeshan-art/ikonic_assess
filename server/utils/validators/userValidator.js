@@ -8,12 +8,14 @@ const {
 
 const userAuth = (req, res, next) => {
   const token = req.headers.authorization;
+  console.log("token", token)
   if (!token) {
     return res.json({ AUTHORIZATION_FAILED });
   }
   const bearer = token.split(" ")[1];
   try {
     const verify = jwt.verify(bearer, process.env.JWT_SECRET);
+    console.log(verify.user);
     req.user = verify.user;
     next();
   } catch (error) {

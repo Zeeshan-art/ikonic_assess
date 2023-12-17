@@ -13,6 +13,7 @@ router.post(
 );
 router.get("/get-all", userAuth, PostControllers.getAllPosts);
 router.get("/get-by-id/:id", PostControllers.getPostById);
+router.get("/:id", userAuth, PostControllers.postLikeandUnlikes);
 router.get("/get-by-user-id/:id", PostControllers.getAllPostsByUserId);
 router.patch(
   "/update-by-id/:id",
@@ -20,7 +21,7 @@ router.patch(
   authorizeRoles(ROLES.USER),
   PostControllers.updatePostById
 );
-router.delete("/delete-by-id/:id", userAuth,PostControllers.deletePostById);
+router.delete("/:id", userAuth, PostControllers.deletePostById);
 router.delete("/delete-all", PostControllers.deleteallPosts);
 
 module.exports = router;
